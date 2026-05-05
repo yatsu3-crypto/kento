@@ -610,6 +610,93 @@
     padding-top: 5px;
   }
 
+  /* ═══════════════════════════════
+     iPad縦向き・iPhone対応
+     ═══════════════════════════════ */
+
+  /* iPad縦向き(820px以下)・タブレット */
+  @media (max-width: 900px) {
+    .book-list, .level-bar-wrap, .stats { max-width: 100%; }
+    .book-list, .level-bar-wrap { padding: 0 20px; }
+  }
+
+  /* iPhone・小さめのタブレット(640px以下) */
+  @media (max-width: 640px) {
+    body { padding-bottom: 110px; }
+
+    header { padding: 18px 16px 14px; }
+    header h1 { font-size: 22px; letter-spacing: 0.02em; }
+    header h1::before, header h1::after { margin: 0 6px; font-size: 14px; }
+    .subtitle { font-size: 11px; }
+
+    .stats { gap: 8px; margin: 14px auto; padding: 0 12px; }
+    .stat { padding: 10px 12px; min-width: 0; flex: 1; }
+    .stat-num { font-size: 22px; }
+    .stat-label { font-size: 10px; }
+
+    .level-bar-wrap { padding: 0 12px; margin-bottom: 12px; }
+    .level-bar { height: 38px; border-radius: 19px; }
+    .level-seg {
+      font-size: 9px;
+      line-height: 1.2;
+      flex-direction: column;
+      padding: 2px;
+      gap: 1px;
+    }
+    .level-seg { font-weight: 600; }
+
+    .tabs { padding: 0 12px; gap: 6px; }
+    .tab { padding: 7px 12px; font-size: 12px; }
+
+    .filters { padding: 0 12px; gap: 5px; margin-bottom: 14px; }
+    .filter { font-size: 11px; padding: 4px 9px; }
+
+    .book-list { padding: 0 12px; }
+    .book { padding: 12px; gap: 10px; }
+    .book-title { font-size: 14px; padding-right: 24px; }
+    .book-author { font-size: 11px; }
+
+    .level-badge { font-size: 14px; padding: 3px 10px; }
+    .level-desc { font-size: 11px; }
+
+    .add-btn {
+      width: 54px; height: 54px;
+      bottom: 18px; right: 18px;
+      font-size: 28px;
+    }
+    .print-btn {
+      bottom: 18px; left: 18px;
+      padding: 10px 14px;
+      font-size: 12px;
+    }
+
+    .modal { padding: 18px; max-height: 92vh; }
+    .modal h2 { font-size: 18px; margin-bottom: 12px; }
+    .field { margin-bottom: 12px; }
+    .field input, .field textarea, .field select {
+      font-size: 16px; /* iOSで自動ズームを避けるため16px以上 */
+      padding: 9px 11px;
+    }
+    .field label { font-size: 12px; }
+
+    .star, .diff { width: 36px; height: 36px; line-height: 36px; }
+
+    /* 印刷プレビュー画面のツールバー(iPhoneでは縦並び) */
+    .print-toolbar {
+      flex-wrap: wrap;
+      padding: 10px 12px;
+      gap: 6px;
+    }
+    .print-toolbar > div {
+      width: 100%;
+      font-size: 11px !important;
+    }
+    .toolbar-btn { font-size: 12px; padding: 7px 12px; }
+
+    .print-content { padding: 8mm; }
+    .cards-grid { grid-template-columns: 1fr; }
+  }
+
   /* ブラウザの印刷ダイアログから印刷した場合の調整 */
   @media print {
     @page { margin: 12mm; size: A4; }
@@ -625,7 +712,7 @@
 
 <header>
   <h1>わたしの読書きろく</h1>
-  <div class="subtitle">ヨンデミーレベル べつ・小学4年生むけ</div>
+  <div class="subtitle">ヨンデミーレベル(YL) べつ・小学生むけ</div>
 </header>
 
 <div class="stats">
@@ -676,7 +763,7 @@
       <input type="text" id="f-author" placeholder="例: 宗田理">
     </div>
     <div class="field">
-      <label>ヨンデミーレベル</label>
+      <label>ヨンデミーレベル(YL)</label>
       <select id="f-level"></select>
     </div>
     <div class="field">
@@ -722,77 +809,102 @@
 
 <script>
 const PRESET_BOOKS = [
+  // ───── YL 10-20 読書の入り口・低学年向け ─────
   {t:"かいけつゾロリのドラゴンたいじ", a:"原ゆたか", lv:10},
-  {t:"エルマーのぼうけん", a:"R.S.ガネット", lv:11},
-  {t:"おしいれのぼうけん", a:"古田足日", lv:11},
-  {t:"はれときどきぶた", a:"矢玉四郎", lv:12},
-  {t:"いやいやえん", a:"中川李枝子", lv:12},
-  {t:"おしゃべりなたまごやき", a:"寺村輝夫", lv:13},
-  {t:"ぼくは王さま", a:"寺村輝夫", lv:13},
-  {t:"番ねずみのヤカちゃん", a:"R.ウィルバー", lv:14},
-  {t:"がんばれヘンリーくん", a:"ベバリイ・クリアリー", lv:14},
-  {t:"マジック・ツリーハウス 恐竜の谷の大冒険", a:"M.P.オズボーン", lv:14},
-  {t:"ふしぎ駄菓子屋 銭天堂", a:"廣嶋玲子", lv:15},
-  {t:"若おかみは小学生!", a:"令丈ヒロ子", lv:15},
-  {t:"妖怪コンビニで、バイトはじめました", a:"令丈ヒロ子", lv:15},
-  {t:"こそあどの森の物語", a:"岡田淳", lv:16},
-  {t:"二分間の冒険", a:"岡田淳", lv:16},
-  {t:"魔女の宅急便", a:"角野栄子", lv:16},
-  {t:"ルドルフとイッパイアッテナ", a:"斉藤洋", lv:17},
-  {t:"霧のむこうのふしぎな町", a:"柏葉幸子", lv:17},
-  {t:"クレヨン王国の十二か月", a:"福永令三", lv:17},
-  {t:"願いがかなうふしぎな日記", a:"本田有明", lv:18},
-  {t:"ズッコケ三人組 こちらズッコケ探偵事務所", a:"那須正幹", lv:18},
-  {t:"都会のトム&ソーヤ", a:"はやみねかおる", lv:19},
-  {t:"名探偵カゲマン", a:"山中恒", lv:19},
-  {t:"ぼくらの七日間戦争", a:"宗田理", lv:20},
-  {t:"カラフル", a:"森絵都", lv:20},
-  {t:"チョコレート工場の秘密", a:"ロアルド・ダール", lv:20},
-  {t:"マチルダは小さな大天才", a:"ロアルド・ダール", lv:20},
-  {t:"床下の小人たち", a:"メアリー・ノートン", lv:21},
-  {t:"小公女", a:"バーネット", lv:21},
-  {t:"秘密の花園", a:"バーネット", lv:22},
-  {t:"赤毛のアン", a:"L.M.モンゴメリ", lv:22},
-  {t:"ハリー・ポッターと賢者の石", a:"J.K.ローリング", lv:22},
-  {t:"ナルニア国物語 ライオンと魔女", a:"C.S.ルイス", lv:22},
-  {t:"穴 HOLES", a:"ルイス・サッカー", lv:23},
-  {t:"トム・ソーヤーの冒険", a:"マーク・トウェイン", lv:23},
-  {t:"ドリトル先生アフリカゆき", a:"ヒュー・ロフティング", lv:23},
-  {t:"トムは真夜中の庭で", a:"フィリパ・ピアス", lv:24},
-  {t:"西の魔女が死んだ", a:"梨木香歩", lv:24},
-  {t:"星の王子さま", a:"サン=テグジュペリ", lv:24},
-  {t:"シートン動物記 オオカミ王ロボ", a:"E.T.シートン", lv:25},
-  {t:"ファーブル昆虫記", a:"J.H.ファーブル", lv:25},
-  {t:"モモ", a:"ミヒャエル・エンデ", lv:25},
-  {t:"獣の奏者 闘蛇編", a:"上橋菜穂子", lv:26},
-  {t:"精霊の守り人", a:"上橋菜穂子", lv:26},
-  {t:"果しなき物語", a:"ミヒャエル・エンデ", lv:27},
-  {t:"アンネの日記", a:"アンネ・フランク", lv:27}
+  {t:"かいけつゾロリのきょうふのやかた", a:"原ゆたか", lv:11},
+  {t:"かいけつゾロリのなぞのスパイとうじょう", a:"原ゆたか", lv:12},
+  {t:"わかったさんのクッキー", a:"寺村輝夫", lv:12},
+  {t:"わかったさんのドーナツ", a:"寺村輝夫", lv:12},
+  {t:"こまったさんのスパゲティ", a:"寺村輝夫", lv:13},
+  {t:"こまったさんのカレーライス", a:"寺村輝夫", lv:13},
+  {t:"ほねほねザウルス1 きえた!?きょうりゅうのたまご", a:"ぐるーぷ・アンモナイツ", lv:14},
+  {t:"ほねほねザウルス2 ねっけつ!ベビべビキッズ", a:"ぐるーぷ・アンモナイツ", lv:15},
+  {t:"おしいれのぼうけん", a:"古田足日", lv:15},
+  {t:"はれときどきぶた", a:"矢玉四郎", lv:16},
+  {t:"いやいやえん", a:"中川李枝子", lv:16},
+  {t:"おしゃべりなたまごやき", a:"寺村輝夫", lv:17},
+  {t:"ぼくは王さま", a:"寺村輝夫", lv:17},
+  {t:"番ねずみのヤカちゃん", a:"R.ウィルバー", lv:18},
+  {t:"がんばれヘンリーくん", a:"ベバリイ・クリアリー", lv:18},
+  {t:"おばけマンション", a:"むらいかよ", lv:19},
+
+  // ───── YL 20-30 物語の楽しさを知る・中学年向け ─────
+  {t:"マジック・ツリーハウス1 恐竜の谷の大冒険", a:"M.P.オズボーン", lv:20},
+  {t:"マジック・ツリーハウス2 女王ヒミコと邪馬台国", a:"M.P.オズボーン", lv:22},
+  {t:"ミルキー杉山のあなたも名探偵 つくも神は要町", a:"杉山亮", lv:22},
+  {t:"ミルキー杉山のあなたも名探偵 七人の探偵", a:"杉山亮", lv:23},
+  {t:"十年屋", a:"廣嶋玲子", lv:24},
+  {t:"十年屋と魔法街の住人たち", a:"廣嶋玲子", lv:25},
+  {t:"ふしぎ駄菓子屋 銭天堂", a:"廣嶋玲子", lv:24},
+  {t:"若おかみは小学生!", a:"令丈ヒロ子", lv:23},
+  {t:"妖怪コンビニで、バイトはじめました", a:"令丈ヒロ子", lv:25},
+  {t:"こそあどの森の物語 ふしぎな木の実の料理法", a:"岡田淳", lv:26},
+  {t:"二分間の冒険", a:"岡田淳", lv:27},
+  {t:"魔女の宅急便", a:"角野栄子", lv:26},
+  {t:"霧のむこうのふしぎな町", a:"柏葉幸子", lv:27},
+  {t:"クレヨン王国の十二か月", a:"福永令三", lv:28},
+  {t:"願いがかなうふしぎな日記", a:"本田有明", lv:28},
+  {t:"ズッコケ三人組 こちらズッコケ探偵事務所", a:"那須正幹", lv:29},
+
+  // ───── YL 30-40 長文に慣れる・中学年〜高学年向け ─────
+  {t:"エルマーのぼうけん", a:"R.S.ガネット", lv:30},
+  {t:"エルマーとりゅう", a:"R.S.ガネット", lv:31},
+  {t:"エルマーと16ぴきのりゅう", a:"R.S.ガネット", lv:32},
+  {t:"黒魔女さんが通る!! チョコ、デビューするの巻", a:"石崎洋司", lv:32},
+  {t:"黒魔女さんが通る!! チョコ、放課後の魔女になる", a:"石崎洋司", lv:33},
+  {t:"ルドルフとイッパイアッテナ", a:"斉藤洋", lv:34},
+  {t:"ルドルフ ともだち ひとりだち", a:"斉藤洋", lv:35},
+  {t:"都会のトム&ソーヤ", a:"はやみねかおる", lv:33},
+  {t:"ぼくらの七日間戦争", a:"宗田理", lv:34},
+  {t:"カラフル", a:"森絵都", lv:36},
+  {t:"チョコレート工場の秘密", a:"ロアルド・ダール", lv:33},
+  {t:"マチルダは小さな大天才", a:"ロアルド・ダール", lv:35},
+  {t:"床下の小人たち", a:"メアリー・ノートン", lv:36},
+  {t:"小公女", a:"バーネット", lv:37},
+  {t:"秘密の花園", a:"バーネット", lv:38},
+  {t:"星の王子さま", a:"サン=テグジュペリ", lv:38},
+  {t:"西の魔女が死んだ", a:"梨木香歩", lv:39},
+
+  // ───── YL 40-50 読書家へのステップ・高学年〜中学生向け ─────
+  {t:"ハリー・ポッターと賢者の石", a:"J.K.ローリング", lv:42},
+  {t:"ハリー・ポッターと秘密の部屋", a:"J.K.ローリング", lv:43},
+  {t:"精霊の守り人", a:"上橋菜穂子", lv:44},
+  {t:"闇の守り人", a:"上橋菜穂子", lv:45},
+  {t:"獣の奏者 闘蛇編", a:"上橋菜穂子", lv:45},
+  {t:"かがみの孤城", a:"辻村深月", lv:46},
+  {t:"赤毛のアン", a:"L.M.モンゴメリ", lv:42},
+  {t:"ナルニア国物語 ライオンと魔女", a:"C.S.ルイス", lv:42},
+  {t:"穴 HOLES", a:"ルイス・サッカー", lv:43},
+  {t:"トム・ソーヤーの冒険", a:"マーク・トウェイン", lv:43},
+  {t:"トムは真夜中の庭で", a:"フィリパ・ピアス", lv:44},
+  {t:"モモ", a:"ミヒャエル・エンデ", lv:45},
+  {t:"果しなき物語", a:"ミヒャエル・エンデ", lv:48},
+  {t:"アンネの日記", a:"アンネ・フランク", lv:47}
 ];
 
 function levelBand(lv) {
-  if (lv <= 14) return "easy";
-  if (lv <= 19) return "mid";
-  if (lv <= 24) return "std";
+  if (lv < 20) return "easy";
+  if (lv < 30) return "mid";
+  if (lv < 40) return "std";
   return "hard";
 }
 const BAND_INFO = {
-  easy: {label: "Lv.10-14", desc: "やさしめ・たくさん読もう"},
-  mid:  {label: "Lv.15-19", desc: "4年生 スタンダード"},
-  std:  {label: "Lv.20-24", desc: "4年生 おすすめゾーン"},
-  hard: {label: "Lv.25-30", desc: "チャレンジ!高学年むけ"}
+  easy: {label: "YL 10-20", desc: "読書の入り口・低学年むけ"},
+  mid:  {label: "YL 20-30", desc: "物語のたのしさを知る"},
+  std:  {label: "YL 30-40", desc: "長文になれる(4年生のおすすめ)"},
+  hard: {label: "YL 40-50", desc: "チャレンジ・読書家へのステップ"}
 };
 
 const sel = document.getElementById("f-level");
-for (let i = 1; i <= 30; i++) {
+for (let i = 10; i <= 50; i++) {
   const opt = document.createElement("option");
   opt.value = i;
-  opt.textContent = "レベル " + i;
-  if (i === 20) opt.selected = true;
+  opt.textContent = "YL " + i;
+  if (i === 30) opt.selected = true;
   sel.appendChild(opt);
 }
 
-const STORAGE_KEY = "dokusho_books_v2";
+const STORAGE_KEY = "dokusho_books_v3";
 
 function loadBooks() {
   const saved = localStorage.getItem(STORAGE_KEY);
@@ -830,7 +942,7 @@ function buildLevelBar() {
 
 function buildFilters() {
   const fEl = document.getElementById("filters");
-  const bands = [["all","ぜんぶ"],["easy","Lv.10-14"],["mid","Lv.15-19"],["std","Lv.20-24"],["hard","Lv.25-30"]];
+  const bands = [["all","ぜんぶ"],["easy","YL 10-20"],["mid","YL 20-30"],["std","YL 30-40"],["hard","YL 40-50"]];
   fEl.innerHTML = bands.map(([k,l]) =>
     `<button class="filter ${k===currentBand?'active':''}" data-band="${k}">${l}</button>`
   ).join("");
@@ -909,7 +1021,7 @@ function bookHTML(b) {
         <div class="book-title">${escapeHtml(b.title)}</div>
         <div class="book-author">${escapeHtml(b.author||'')}</div>
         <div class="book-meta">
-          <span class="book-level ${band}">Lv.${b.level}</span>
+          <span class="book-level ${band}">YL ${b.level}</span>
         </div>
         ${b.read ? `
           <div class="book-record">
@@ -1118,7 +1230,7 @@ function renderListPrint(list) {
             <tr>
               <th class="col-num">#</th>
               <th class="col-check">読</th>
-              <th class="col-lv">Lv</th>
+              <th class="col-lv">YL</th>
               <th>タイトル</th>
               <th>作者</th>
               <th class="col-date">読了日</th>
@@ -1142,7 +1254,7 @@ function renderCardsPrint(list) {
       return `
         <div class="pcard unread">
           <div class="pcard-num">No.${i+1}</div>
-          <div class="pcard-lv">Lv.${b.level}</div>
+          <div class="pcard-lv">YL ${b.level}</div>
           <div class="pcard-title">${escapeHtml(b.title)}</div>
           <div class="pcard-author">${escapeHtml(b.author||'')}</div>
           <div class="pcard-empty">これから読む本</div>
@@ -1152,7 +1264,7 @@ function renderCardsPrint(list) {
     return `
       <div class="pcard">
         <div class="pcard-num">No.${i+1}</div>
-        <div class="pcard-lv">Lv.${b.level}</div>
+        <div class="pcard-lv">YL ${b.level}</div>
         <div class="pcard-title">${escapeHtml(b.title)}</div>
         <div class="pcard-author">${escapeHtml(b.author||'')}</div>
         <dl class="pcard-meta">
