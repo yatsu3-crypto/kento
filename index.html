@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>わたしの読書きろく</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Klee+One:wght@400;600&family=Zen+Maru+Gothic:wght@400;500;700&family=Yusei+Magic&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #fdf8ee;
+    --paper: #fffaf0;
+    --ink: #3d3022;
+    --ink-soft: #6b5944;
+    --line: #d9c9a8;
+    --accent: #c8553d;
+    --accent-soft: #e8a87c;
+    --green: #6a8e5e;
+    --blue: #7a9cb5;
+    --yellow: #f4c04e;
+    --shadow: rgba(61, 48, 34, 0.12);
+
+    --lv-easy: #b8d0d6;
+    --lv-mid: #f4d4a8;
+    --lv-std: #e8a87c;
+    --lv-hard: #c9b6dc;
+  }
+
+  body {
+    font-family: 'Zen Maru Gothic', sans-serif;
+    background: var(--bg);
+    background-image:
+      radial-gradient(circle at 20% 10%, rgba(244, 192, 78, 0.08) 0%, transparent 40%),
+      radial-gradient(circle at 80% 70%, rgba(122, 156, 181, 0.08) 0%, transparent 40%);
+    color: var(--ink);
+    min-height: 100vh;
+    padding-bottom: 100px;
+  }
+
+  header {
+    background: var(--paper);
+    border-bottom: 3px double var(--line);
+    padding: 24px 20px 20px;
+    text-align: center;
+  }
+  header h1 {
+    font-family: 'Yusei Magic', cursive;
+    font-size: 28px;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+  }
+  header h1::before, header h1::after {
+    content: '✦';
+    color: var(--yellow);
+    margin: 0 12px;
+    font-size: 18px;
+    vertical-align: middle;
+  }
+  .subtitle {
+    font-family: 'Klee One', sans-serif;
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-top: 4px;
+  }
+
+  .stats {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    margin: 20px auto;
+    max-width: 600px;
+    padding: 0 16px;
+    flex-wrap: wrap;
+  }
+  .stat {
+    background: var(--paper);
+    border: 2px solid var(--line);
+    border-radius: 12px;
+    padding: 12px 18px;
+    text-align: center;
+    min-width: 100px;
+    box-shadow: 2px 2px 0 var(--shadow);
+  }
+  .stat-num {
+    font-family: 'Yusei Magic', cursive;
+    font-size: 26px;
+    color: var(--accent);
+    line-height: 1;
+  }
+  .stat-label {
+    font-size: 11px;
+    color: var(--ink-soft);
+    margin-top: 4px;
+  }
+
+  .level-bar-wrap {
+    max-width: 720px;
+    margin: 0 auto 16px;
+    padding: 0 16px;
+  }
+  .level-bar-title {
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-bottom: 6px;
+    text-align: center;
+    font-family: 'Klee One', sans-serif;
+  }
+  .level-bar {
+    display: flex;
+    height: 28px;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1.5px solid var(--line);
+    background: var(--paper);
+    font-size: 11px;
+  }
+  .level-seg {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink);
+    border-right: 1px solid var(--line);
+    cursor: pointer;
+    transition: opacity 0.15s;
+    font-weight: 500;
+  }
+  .level-seg:last-child { border-right: none; }
+  .level-seg:hover { opacity: 0.85; }
+  .level-seg.easy { background: var(--lv-easy); }
+  .level-seg.mid { background: var(--lv-mid); }
+  .level-seg.std { background: var(--lv-std); }
+  .level-seg.hard { background: var(--lv-hard); }
+
+  .tabs {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 16px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .tab {
+    background: var(--paper);
+    border: 2px solid var(--line);
+    color: var(--ink-soft);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-family: 'Zen Maru Gothic', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .tab.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+    box-shadow: 2px 2px 0 var(--shadow);
+  }
+
+  .filters {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    padding: 0 16px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .filter {
+    background: transparent;
+    border: 1.5px solid var(--line);
+    color: var(--ink-soft);
+    padding: 5px 12px;
+    border-radius: 14px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .filter.active {
+    background: var(--ink);
+    color: var(--paper);
+    border-color: var(--ink);
+  }
+
+  .book-list {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 16px;
+  }
+  .level-group { margin-bottom: 24px; }
+  .level-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 2px dashed var(--line);
+    flex-wrap: wrap;
+  }
+  .level-badge {
+    font-family: 'Yusei Magic', cursive;
+    font-size: 16px;
+    padding: 4px 12px;
+    border-radius: 16px;
+    color: var(--ink);
+  }
+  .level-badge.easy { background: var(--lv-easy); }
+  .level-badge.mid { background: var(--lv-mid); }
+  .level-badge.std { background: var(--lv-std); }
+  .level-badge.hard { background: var(--lv-hard); }
+  .level-desc {
+    font-size: 12px;
+    color: var(--ink-soft);
+    font-family: 'Klee One', sans-serif;
+  }
+  .level-count {
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--ink-soft);
+  }
+
+  .book {
+    background: var(--paper);
+    border: 1.5px solid var(--line);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    box-shadow: 2px 2px 0 var(--shadow);
+    position: relative;
+  }
+  .book.read {
+    background: linear-gradient(to right, #f0e4ce 0%, var(--paper) 8%);
+    border-color: var(--accent-soft);
+  }
+  .book.read::before {
+    content: '✓';
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    color: var(--green);
+    font-size: 22px;
+    font-weight: bold;
+  }
+
+  .checkbox {
+    width: 28px;
+    height: 28px;
+    border: 2.5px solid var(--ink-soft);
+    border-radius: 6px;
+    cursor: pointer;
+    flex-shrink: 0;
+    margin-top: 2px;
+    background: white;
+  }
+  .checkbox.checked { background: var(--green); border-color: var(--green); }
+  .checkbox.checked::after {
+    content: '✓';
+    display: block;
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+    line-height: 24px;
+  }
+
+  .book-info { flex: 1; min-width: 0; cursor: pointer; }
+  .book-title {
+    font-family: 'Klee One', sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--ink);
+    line-height: 1.4;
+    padding-right: 28px;
+  }
+  .book-author {
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-top: 2px;
+  }
+  .book-meta { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+  .book-level {
+    display: inline-block;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 8px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .book-level.easy { background: var(--lv-easy); }
+  .book-level.mid { background: var(--lv-mid); }
+  .book-level.std { background: var(--lv-std); }
+  .book-level.hard { background: var(--lv-hard); }
+
+  .book-record {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px dashed var(--line);
+    font-size: 12px;
+    color: var(--ink-soft);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .book-feeling {
+    font-family: 'Klee One', sans-serif;
+    font-size: 12px;
+    color: var(--ink);
+    margin-top: 6px;
+    line-height: 1.5;
+    background: rgba(244, 192, 78, 0.1);
+    padding: 6px 8px;
+    border-radius: 4px;
+    border-left: 3px solid var(--yellow);
+  }
+
+  .add-btn {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: white;
+    border: none;
+    font-size: 32px;
+    cursor: pointer;
+    box-shadow: 3px 3px 0 var(--shadow), 0 6px 16px rgba(200, 85, 61, 0.3);
+    z-index: 10;
+    line-height: 1;
+  }
+  .print-btn {
+    position: fixed;
+    bottom: 24px;
+    left: 24px;
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    padding: 12px 18px;
+    border-radius: 24px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    box-shadow: 3px 3px 0 var(--shadow);
+    z-index: 10;
+  }
+
+  .modal-bg {
+    position: fixed;
+    inset: 0;
+    background: rgba(61, 48, 34, 0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 20px;
+  }
+  .modal-bg.show { display: flex; }
+  .modal {
+    background: var(--paper);
+    border-radius: 16px;
+    padding: 24px;
+    max-width: 480px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    border: 2px solid var(--line);
+  }
+  .modal h2 {
+    font-family: 'Yusei Magic', cursive;
+    color: var(--accent);
+    font-size: 20px;
+    margin-bottom: 16px;
+    text-align: center;
+  }
+  .field { margin-bottom: 14px; }
+  .field label {
+    display: block;
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-bottom: 4px;
+    font-weight: 500;
+  }
+  .field input, .field textarea, .field select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1.5px solid var(--line);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 14px;
+    background: white;
+    color: var(--ink);
+  }
+  .field textarea { resize: vertical; min-height: 60px; font-family: 'Klee One', sans-serif; }
+  .field input:focus, .field textarea:focus, .field select:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  .star-rating, .difficulty-rating { display: flex; gap: 4px; }
+  .star, .diff {
+    width: 32px;
+    height: 32px;
+    border: 1.5px solid var(--line);
+    background: white;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 32px;
+    text-align: center;
+    user-select: none;
+  }
+  .star.on { background: var(--yellow); border-color: var(--yellow); }
+  .diff.on { background: var(--blue); border-color: var(--blue); color: white; }
+
+  .modal-actions { display: flex; gap: 8px; margin-top: 20px; }
+  .btn {
+    flex: 1;
+    padding: 11px;
+    border: none;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-secondary { background: transparent; color: var(--ink-soft); border: 1.5px solid var(--line); }
+  .btn-danger { background: transparent; color: var(--accent); border: 1.5px solid var(--accent); }
+
+  .print-options {
+    display: none;
+    background: var(--paper);
+    border: 2px solid var(--line);
+    border-radius: 12px;
+    padding: 16px;
+    max-width: 600px;
+    margin: 0 auto 20px;
+    text-align: center;
+  }
+  .print-options.show { display: block; }
+  .print-options h3 {
+    font-family: 'Yusei Magic', cursive;
+    color: var(--accent);
+    font-size: 16px;
+    margin-bottom: 12px;
+  }
+  .layout-choices { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+  .layout-btn {
+    background: white;
+    border: 2px solid var(--line);
+    padding: 10px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    color: var(--ink);
+  }
+  .layout-btn.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+  .empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--ink-soft);
+    font-family: 'Klee One', sans-serif;
+  }
+
+  .print-only { display: none; }
+
+  @media print {
+    @page { margin: 12mm; size: A4; }
+    body { background: white; padding: 0; }
+    header, .stats, .level-bar-wrap, .tabs, .filters, .add-btn, .print-btn, .book-list, .print-options, .modal-bg { display: none !important; }
+    .print-only { display: block; }
+
+    .print-list { font-family: 'Zen Maru Gothic', sans-serif; color: black; }
+    .print-list h1 {
+      font-family: 'Yusei Magic', cursive;
+      font-size: 22px;
+      text-align: center;
+      margin-bottom: 4px;
+    }
+    .print-list .print-sub {
+      text-align: center;
+      font-size: 11px;
+      margin-bottom: 12px;
+    }
+    .print-list h2 {
+      font-size: 13px;
+      margin: 14px 0 6px;
+      padding: 4px 8px;
+      background: #eee;
+      border-left: 4px solid #555;
+    }
+    .print-list table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+    }
+    .print-list th, .print-list td {
+      border: 1px solid #555;
+      padding: 5px 6px;
+      text-align: left;
+      vertical-align: top;
+    }
+    .print-list th { background: #eee; font-weight: 600; text-align: center; }
+    .print-list .col-check { width: 24px; text-align: center; font-size: 14px; }
+    .print-list .col-num { width: 28px; text-align: center; }
+    .print-list .col-lv { width: 36px; text-align: center; }
+    .print-list .col-date { width: 60px; text-align: center; font-size: 10px; }
+    .print-list .col-stars { width: 60px; text-align: center; }
+
+    .print-cards { font-family: 'Zen Maru Gothic', sans-serif; color: black; }
+    .print-cards h1 {
+      font-family: 'Yusei Magic', cursive;
+      font-size: 22px;
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    .cards-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; }
+    .pcard {
+      border: 1.5px solid #333;
+      border-radius: 6px;
+      padding: 8px 10px;
+      page-break-inside: avoid;
+      min-height: 65mm;
+      position: relative;
+    }
+    .pcard-num {
+      position: absolute;
+      top: 6px; right: 8px;
+      font-size: 10px;
+      color: #777;
+    }
+    .pcard-lv {
+      position: absolute;
+      top: 22px; right: 8px;
+      font-size: 9px;
+      background: #ddd;
+      padding: 1px 5px;
+      border-radius: 6px;
+    }
+    .pcard-title {
+      font-family: 'Klee One', sans-serif;
+      font-weight: 600;
+      font-size: 13px;
+      line-height: 1.3;
+      margin-bottom: 3px;
+      padding-right: 50px;
+    }
+    .pcard-author { font-size: 10px; color: #555; margin-bottom: 6px; }
+    .pcard-meta {
+      font-size: 10px;
+      border-top: 1px dashed #999;
+      padding-top: 5px;
+      margin-bottom: 5px;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 2px 8px;
+    }
+    .pcard-meta dt { color: #666; }
+    .pcard-feeling {
+      font-family: 'Klee One', sans-serif;
+      font-size: 10px;
+      line-height: 1.5;
+      border-top: 1px dashed #999;
+      padding-top: 5px;
+      min-height: 18mm;
+    }
+    .pcard-feeling-label { color: #666; font-size: 9px; }
+    .pcard.unread {
+      background: repeating-linear-gradient(45deg, transparent, transparent 6px, #f5f5f5 6px, #f5f5f5 12px);
+    }
+    .pcard.unread .pcard-feeling, .pcard.unread .pcard-meta { display: none; }
+    .pcard.unread .pcard-empty {
+      font-family: 'Klee One', sans-serif;
+      font-size: 10px;
+      color: #999;
+      margin-top: 8px;
+      border-top: 1px dashed #999;
+      padding-top: 5px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>わたしの読書きろく</h1>
+  <div class="subtitle">ヨンデミーレベル べつ・小学4年生むけ</div>
+</header>
+
+<div class="stats">
+  <div class="stat"><div class="stat-num" id="stat-read">0</div><div class="stat-label">よんだ本</div></div>
+  <div class="stat"><div class="stat-num" id="stat-total">0</div><div class="stat-label">リスト全体</div></div>
+  <div class="stat"><div class="stat-num" id="stat-lv">-</div><div class="stat-label">いまのレベル</div></div>
+</div>
+
+<div class="level-bar-wrap">
+  <div class="level-bar-title">レベル帯をタップで絞りこめます</div>
+  <div class="level-bar" id="level-bar"></div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="all">ぜんぶ</button>
+  <button class="tab" data-tab="read">よんだ</button>
+  <button class="tab" data-tab="unread">まだ</button>
+</div>
+
+<div class="filters" id="filters"></div>
+
+<div class="print-options" id="print-options">
+  <h3>どのスタイルで印刷する?</h3>
+  <div class="layout-choices">
+    <button class="layout-btn active" data-layout="list">📋 一覧表</button>
+    <button class="layout-btn" data-layout="cards">📇 読書カード</button>
+  </div>
+  <div style="margin-top: 12px;">
+    <button class="btn btn-primary" onclick="doPrint()" style="max-width:200px;margin:0 auto;">印刷する</button>
+    <button class="btn btn-secondary" onclick="togglePrintOptions()" style="max-width:200px;margin:8px auto 0;">とじる</button>
+  </div>
+</div>
+
+<div class="book-list" id="book-list"></div>
+
+<button class="print-btn" onclick="togglePrintOptions()">🖨 印刷</button>
+<button class="add-btn" onclick="openAddModal()">+</button>
+
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <h2 id="modal-title">本を記録する</h2>
+    <div class="field">
+      <label>本のタイトル</label>
+      <input type="text" id="f-title" placeholder="例: ぼくらの七日間戦争">
+    </div>
+    <div class="field">
+      <label>作者</label>
+      <input type="text" id="f-author" placeholder="例: 宗田理">
+    </div>
+    <div class="field">
+      <label>ヨンデミーレベル</label>
+      <select id="f-level"></select>
+    </div>
+    <div class="field">
+      <label>読了日</label>
+      <input type="date" id="f-date">
+    </div>
+    <div class="field">
+      <label>★ おもしろさ</label>
+      <div class="star-rating" id="stars">
+        <span class="star" data-v="1">★</span><span class="star" data-v="2">★</span><span class="star" data-v="3">★</span><span class="star" data-v="4">★</span><span class="star" data-v="5">★</span>
+      </div>
+    </div>
+    <div class="field">
+      <label>むずかしさ(自分の感じかた)</label>
+      <div class="difficulty-rating" id="diffs">
+        <span class="diff" data-v="1">1</span><span class="diff" data-v="2">2</span><span class="diff" data-v="3">3</span><span class="diff" data-v="4">4</span><span class="diff" data-v="5">5</span>
+      </div>
+    </div>
+    <div class="field">
+      <label>ひとこと感想</label>
+      <textarea id="f-feeling" placeholder="どんなお話だった?おもしろかったところは?"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal()">とじる</button>
+      <button class="btn btn-danger" id="del-btn" onclick="deleteBook()" style="display:none">けす</button>
+      <button class="btn btn-primary" onclick="saveBook()">ほぞん</button>
+    </div>
+  </div>
+</div>
+
+<div class="print-only" id="print-area"></div>
+
+<script>
+// ═══ プリセット本(ヨンデミーレベル別・小4向け) ═══
+// レベルは公式値ではなく文字数・語彙・テーマの難度から推定した目安
+const PRESET_BOOKS = [
+  // Lv.10〜14 やさしめ
+  {t:"かいけつゾロリのドラゴンたいじ", a:"原ゆたか", lv:10},
+  {t:"エルマーのぼうけん", a:"R.S.ガネット", lv:11},
+  {t:"おしいれのぼうけん", a:"古田足日", lv:11},
+  {t:"はれときどきぶた", a:"矢玉四郎", lv:12},
+  {t:"いやいやえん", a:"中川李枝子", lv:12},
+  {t:"おしゃべりなたまごやき", a:"寺村輝夫", lv:13},
+  {t:"ぼくは王さま", a:"寺村輝夫", lv:13},
+  {t:"番ねずみのヤカちゃん", a:"R.ウィルバー", lv:14},
+  {t:"がんばれヘンリーくん", a:"ベバリイ・クリアリー", lv:14},
+  {t:"マジック・ツリーハウス 恐竜の谷の大冒険", a:"M.P.オズボーン", lv:14},
+  // Lv.15〜19 4年生スタンダード前半
+  {t:"ふしぎ駄菓子屋 銭天堂", a:"廣嶋玲子", lv:15},
+  {t:"若おかみは小学生!", a:"令丈ヒロ子", lv:15},
+  {t:"妖怪コンビニで、バイトはじめました", a:"令丈ヒロ子", lv:15},
+  {t:"こそあどの森の物語", a:"岡田淳", lv:16},
+  {t:"二分間の冒険", a:"岡田淳", lv:16},
+  {t:"魔女の宅急便", a:"角野栄子", lv:16},
+  {t:"ルドルフとイッパイアッテナ", a:"斉藤洋", lv:17},
+  {t:"霧のむこうのふしぎな町", a:"柏葉幸子", lv:17},
+  {t:"クレヨン王国の十二か月", a:"福永令三", lv:17},
+  {t:"願いがかなうふしぎな日記", a:"本田有明", lv:18},
+  {t:"ズッコケ三人組 こちらズッコケ探偵事務所", a:"那須正幹", lv:18},
+  {t:"都会のトム&ソーヤ", a:"はやみねかおる", lv:19},
+  {t:"名探偵カゲマン", a:"山中恒", lv:19},
+  // Lv.20〜24 4年生おすすめゾーン
+  {t:"ぼくらの七日間戦争", a:"宗田理", lv:20},
+  {t:"カラフル", a:"森絵都", lv:20},
+  {t:"チョコレート工場の秘密", a:"ロアルド・ダール", lv:20},
+  {t:"マチルダは小さな大天才", a:"ロアルド・ダール", lv:20},
+  {t:"床下の小人たち", a:"メアリー・ノートン", lv:21},
+  {t:"小公女", a:"バーネット", lv:21},
+  {t:"秘密の花園", a:"バーネット", lv:22},
+  {t:"赤毛のアン", a:"L.M.モンゴメリ", lv:22},
+  {t:"ハリー・ポッターと賢者の石", a:"J.K.ローリング", lv:22},
+  {t:"ナルニア国物語 ライオンと魔女", a:"C.S.ルイス", lv:22},
+  {t:"穴 HOLES", a:"ルイス・サッカー", lv:23},
+  {t:"トム・ソーヤーの冒険", a:"マーク・トウェイン", lv:23},
+  {t:"ドリトル先生アフリカゆき", a:"ヒュー・ロフティング", lv:23},
+  {t:"トムは真夜中の庭で", a:"フィリパ・ピアス", lv:24},
+  {t:"西の魔女が死んだ", a:"梨木香歩", lv:24},
+  {t:"星の王子さま", a:"サン=テグジュペリ", lv:24},
+  // Lv.25〜30 チャレンジ
+  {t:"シートン動物記 オオカミ王ロボ", a:"E.T.シートン", lv:25},
+  {t:"ファーブル昆虫記", a:"J.H.ファーブル", lv:25},
+  {t:"モモ", a:"ミヒャエル・エンデ", lv:25},
+  {t:"獣の奏者 闘蛇編", a:"上橋菜穂子", lv:26},
+  {t:"精霊の守り人", a:"上橋菜穂子", lv:26},
+  {t:"果しなき物語", a:"ミヒャエル・エンデ", lv:27},
+  {t:"アンネの日記", a:"アンネ・フランク", lv:27}
+];
+
+function levelBand(lv) {
+  if (lv <= 14) return "easy";
+  if (lv <= 19) return "mid";
+  if (lv <= 24) return "std";
+  return "hard";
+}
+const BAND_INFO = {
+  easy: {label: "Lv.10-14", desc: "やさしめ・たくさん読もう"},
+  mid:  {label: "Lv.15-19", desc: "4年生 スタンダード"},
+  std:  {label: "Lv.20-24", desc: "4年生 おすすめゾーン"},
+  hard: {label: "Lv.25-30", desc: "チャレンジ!高学年むけ"}
+};
+
+// レベルセレクトを動的生成
+const sel = document.getElementById("f-level");
+for (let i = 1; i <= 30; i++) {
+  const opt = document.createElement("option");
+  opt.value = i;
+  opt.textContent = "レベル " + i;
+  if (i === 20) opt.selected = true;
+  sel.appendChild(opt);
+}
+
+const STORAGE_KEY = "dokusho_books_v2";
+
+function loadBooks() {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) return JSON.parse(saved);
+  const initial = PRESET_BOOKS.map((b, i) => ({
+    id: "p" + i, title: b.t, author: b.a, level: b.lv,
+    read: false, date: "", stars: 0, difficulty: 0, feeling: ""
+  }));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(initial));
+  return initial;
+}
+function saveBooks() { localStorage.setItem(STORAGE_KEY, JSON.stringify(books)); }
+
+let books = loadBooks();
+let currentTab = "all";
+let currentBand = "all";
+let editingId = null;
+let printLayout = "list";
+
+function buildLevelBar() {
+  const bar = document.getElementById("level-bar");
+  const bands = ["easy", "mid", "std", "hard"];
+  bar.innerHTML = bands.map(b => {
+    const info = BAND_INFO[b];
+    const count = books.filter(x => levelBand(x.level) === b).length;
+    return `<div class="level-seg ${b}" data-band="${b}">${info.label} (${count})</div>`;
+  }).join("");
+  bar.querySelectorAll(".level-seg").forEach(el => {
+    el.onclick = () => {
+      currentBand = currentBand === el.dataset.band ? "all" : el.dataset.band;
+      render();
+    };
+  });
+}
+
+function buildFilters() {
+  const fEl = document.getElementById("filters");
+  const bands = [["all","ぜんぶ"],["easy","Lv.10-14"],["mid","Lv.15-19"],["std","Lv.20-24"],["hard","Lv.25-30"]];
+  fEl.innerHTML = bands.map(([k,l]) =>
+    `<button class="filter ${k===currentBand?'active':''}" data-band="${k}">${l}</button>`
+  ).join("");
+  fEl.querySelectorAll(".filter").forEach(el => {
+    el.onclick = () => { currentBand = el.dataset.band; render(); };
+  });
+}
+
+function render() {
+  buildLevelBar();
+  buildFilters();
+  document.querySelectorAll(".tab").forEach(t =>
+    t.classList.toggle("active", t.dataset.tab === currentTab)
+  );
+
+  const filtered = books.filter(b => {
+    if (currentTab === "read" && !b.read) return false;
+    if (currentTab === "unread" && b.read) return false;
+    if (currentBand !== "all" && levelBand(b.level) !== currentBand) return false;
+    return true;
+  });
+  filtered.sort((a,b) => a.level - b.level || a.title.localeCompare(b.title, "ja"));
+
+  const list = document.getElementById("book-list");
+  if (filtered.length === 0) {
+    list.innerHTML = '<div class="empty">本が見つかりませんでした</div>';
+  } else {
+    const groups = {};
+    filtered.forEach(b => {
+      const band = levelBand(b.level);
+      if (!groups[band]) groups[band] = [];
+      groups[band].push(b);
+    });
+    list.innerHTML = ["easy","mid","std","hard"]
+      .filter(band => groups[band])
+      .map(band => {
+        const info = BAND_INFO[band];
+        const items = groups[band].map(b => bookHTML(b)).join("");
+        return `
+          <div class="level-group">
+            <div class="level-header">
+              <span class="level-badge ${band}">${info.label}</span>
+              <span class="level-desc">${info.desc}</span>
+              <span class="level-count">${groups[band].length}冊</span>
+            </div>
+            ${items}
+          </div>
+        `;
+      }).join("");
+    list.querySelectorAll(".book").forEach(el => {
+      const id = el.dataset.id;
+      el.querySelector(".checkbox").onclick = (e) => { e.stopPropagation(); toggleRead(id); };
+      el.querySelector(".book-info").onclick = () => openEditModal(id);
+    });
+  }
+
+  const readBooks = books.filter(b => b.read);
+  document.getElementById("stat-read").textContent = readBooks.length;
+  document.getElementById("stat-total").textContent = books.length;
+  if (readBooks.length > 0) {
+    const avg = readBooks.reduce((s,b) => s+b.level, 0) / readBooks.length;
+    document.getElementById("stat-lv").textContent = Math.round(avg);
+  } else {
+    document.getElementById("stat-lv").textContent = "-";
+  }
+}
+
+function bookHTML(b) {
+  const stars = b.stars > 0 ? "★".repeat(b.stars) : "";
+  const diff = b.difficulty > 0 ? "●".repeat(b.difficulty) + "○".repeat(5-b.difficulty) : "";
+  const band = levelBand(b.level);
+  return `
+    <div class="book ${b.read?'read':''}" data-id="${b.id}">
+      <div class="checkbox ${b.read?'checked':''}"></div>
+      <div class="book-info">
+        <div class="book-title">${escapeHtml(b.title)}</div>
+        <div class="book-author">${escapeHtml(b.author||'')}</div>
+        <div class="book-meta">
+          <span class="book-level ${band}">Lv.${b.level}</span>
+        </div>
+        ${b.read ? `
+          <div class="book-record">
+            ${b.date ? `<span>📅 ${formatDate(b.date)}</span>` : ''}
+            ${stars ? `<span style="color:#f4c04e">${stars}</span>` : ''}
+            ${diff ? `<span style="color:#7a9cb5;font-size:10px">むずかしさ ${diff}</span>` : ''}
+          </div>
+          ${b.feeling ? `<div class="book-feeling">${escapeHtml(b.feeling)}</div>` : ''}
+        ` : ''}
+      </div>
+    </div>
+  `;
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+}
+function formatDate(d) {
+  if (!d) return "";
+  const dt = new Date(d);
+  return `${dt.getMonth()+1}/${dt.getDate()}`;
+}
+
+function toggleRead(id) {
+  const b = books.find(x => x.id === id);
+  if (!b) return;
+  b.read = !b.read;
+  if (b.read && !b.date) {
+    b.date = new Date().toISOString().slice(0,10);
+  }
+  saveBooks();
+  render();
+}
+
+function openAddModal() {
+  editingId = null;
+  document.getElementById("modal-title").textContent = "本をついかする";
+  document.getElementById("f-title").value = "";
+  document.getElementById("f-author").value = "";
+  document.getElementById("f-level").value = "20";
+  document.getElementById("f-date").value = "";
+  document.getElementById("f-feeling").value = "";
+  setStars(0); setDiffs(0);
+  document.getElementById("del-btn").style.display = "none";
+  document.getElementById("modal").classList.add("show");
+}
+
+function openEditModal(id) {
+  const b = books.find(x => x.id === id);
+  if (!b) return;
+  editingId = id;
+  document.getElementById("modal-title").textContent = "本を記録する";
+  document.getElementById("f-title").value = b.title;
+  document.getElementById("f-author").value = b.author || "";
+  document.getElementById("f-level").value = b.level;
+  document.getElementById("f-date").value = b.date || "";
+  document.getElementById("f-feeling").value = b.feeling || "";
+  setStars(b.stars); setDiffs(b.difficulty);
+  document.getElementById("del-btn").style.display = id.startsWith("p") ? "none" : "block";
+  document.getElementById("modal").classList.add("show");
+}
+
+function closeModal() { document.getElementById("modal").classList.remove("show"); }
+
+function saveBook() {
+  const title = document.getElementById("f-title").value.trim();
+  if (!title) { alert("タイトルを入れてね"); return; }
+  const data = {
+    title,
+    author: document.getElementById("f-author").value.trim(),
+    level: parseInt(document.getElementById("f-level").value, 10),
+    date: document.getElementById("f-date").value,
+    stars: getStars(),
+    difficulty: getDiffs(),
+    feeling: document.getElementById("f-feeling").value.trim()
+  };
+  if (editingId) {
+    const b = books.find(x => x.id === editingId);
+    Object.assign(b, data);
+    if (data.date || data.stars > 0 || data.feeling) b.read = true;
+  } else {
+    books.push({
+      id: "u" + Date.now(),
+      ...data,
+      read: !!(data.date || data.stars > 0 || data.feeling)
+    });
+  }
+  saveBooks();
+  closeModal();
+  render();
+}
+
+function deleteBook() {
+  if (!editingId || !confirm("この本をリストからけしますか?")) return;
+  books = books.filter(b => b.id !== editingId);
+  saveBooks();
+  closeModal();
+  render();
+}
+
+let starsVal = 0, diffsVal = 0;
+function setStars(v) {
+  starsVal = v;
+  document.querySelectorAll("#stars .star").forEach((el,i) =>
+    el.classList.toggle("on", i < v)
+  );
+}
+function setDiffs(v) {
+  diffsVal = v;
+  document.querySelectorAll("#diffs .diff").forEach((el,i) =>
+    el.classList.toggle("on", i < v)
+  );
+}
+function getStars() { return starsVal; }
+function getDiffs() { return diffsVal; }
+
+document.querySelectorAll("#stars .star").forEach(el => {
+  el.onclick = () => setStars(+el.dataset.v === starsVal ? 0 : +el.dataset.v);
+});
+document.querySelectorAll("#diffs .diff").forEach(el => {
+  el.onclick = () => setDiffs(+el.dataset.v === diffsVal ? 0 : +el.dataset.v);
+});
+
+document.querySelectorAll(".tab").forEach(t => {
+  t.onclick = () => { currentTab = t.dataset.tab; render(); };
+});
+
+function togglePrintOptions() {
+  document.getElementById("print-options").classList.toggle("show");
+}
+
+document.querySelectorAll(".layout-btn").forEach(b => {
+  b.onclick = () => {
+    document.querySelectorAll(".layout-btn").forEach(x => x.classList.remove("active"));
+    b.classList.add("active");
+    printLayout = b.dataset.layout;
+  };
+});
+
+function doPrint() {
+  const filtered = books.filter(b => {
+    if (currentTab === "read" && !b.read) return false;
+    if (currentTab === "unread" && b.read) return false;
+    if (currentBand !== "all" && levelBand(b.level) !== currentBand) return false;
+    return true;
+  });
+  filtered.sort((a,b) => a.level - b.level || a.title.localeCompare(b.title, "ja"));
+  const area = document.getElementById("print-area");
+  if (printLayout === "list") {
+    area.innerHTML = renderListPrint(filtered);
+  } else {
+    area.innerHTML = renderCardsPrint(filtered);
+  }
+  setTimeout(() => window.print(), 100);
+}
+
+function renderListPrint(list) {
+  const today = new Date();
+  const ymd = `${today.getFullYear()}年${today.getMonth()+1}月${today.getDate()}日`;
+  const groups = {};
+  list.forEach(b => {
+    const band = levelBand(b.level);
+    if (!groups[band]) groups[band] = [];
+    groups[band].push(b);
+  });
+  const sections = ["easy","mid","std","hard"]
+    .filter(b => groups[b])
+    .map(band => {
+      const info = BAND_INFO[band];
+      let n = 0;
+      const rows = groups[band].map(b => {
+        n++;
+        return `
+          <tr>
+            <td class="col-num">${n}</td>
+            <td class="col-check">${b.read ? '✓' : ''}</td>
+            <td class="col-lv">${b.level}</td>
+            <td>${escapeHtml(b.title)}</td>
+            <td>${escapeHtml(b.author||'')}</td>
+            <td class="col-date">${b.date ? formatDate(b.date) : ''}</td>
+            <td class="col-stars">${b.stars > 0 ? '★'.repeat(b.stars) : ''}</td>
+          </tr>
+        `;
+      }).join("");
+      return `
+        <h2>${info.label}  ${info.desc}  (${groups[band].length}冊)</h2>
+        <table>
+          <thead>
+            <tr>
+              <th class="col-num">#</th>
+              <th class="col-check">読</th>
+              <th class="col-lv">Lv</th>
+              <th>タイトル</th>
+              <th>作者</th>
+              <th class="col-date">読了日</th>
+              <th class="col-stars">おもしろさ</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      `;
+    }).join("");
+  return `
+    <div class="print-list">
+      <h1>わたしの読書きろく</h1>
+      <div class="print-sub">${ymd} 印刷  ・  全${list.length}冊  ・  読了 ${list.filter(b=>b.read).length}冊  ・  ヨンデミーレベル別</div>
+      ${sections}
+    </div>
+  `;
+}
+
+function renderCardsPrint(list) {
+  const cards = list.map((b, i) => {
+    if (!b.read) {
+      return `
+        <div class="pcard unread">
+          <div class="pcard-num">No.${i+1}</div>
+          <div class="pcard-lv">Lv.${b.level}</div>
+          <div class="pcard-title">${escapeHtml(b.title)}</div>
+          <div class="pcard-author">${escapeHtml(b.author||'')}</div>
+          <div class="pcard-empty">これから読む本</div>
+        </div>
+      `;
+    }
+    return `
+      <div class="pcard">
+        <div class="pcard-num">No.${i+1}</div>
+        <div class="pcard-lv">Lv.${b.level}</div>
+        <div class="pcard-title">${escapeHtml(b.title)}</div>
+        <div class="pcard-author">${escapeHtml(b.author||'')}</div>
+        <dl class="pcard-meta">
+          <dt>読了日</dt><dd>${b.date ? formatDate(b.date) : '-'}</dd>
+          <dt>おもしろさ</dt><dd>${b.stars > 0 ? '★'.repeat(b.stars) + '☆'.repeat(5-b.stars) : '-'}</dd>
+          <dt>むずかしさ</dt><dd>${b.difficulty > 0 ? '●'.repeat(b.difficulty) + '○'.repeat(5-b.difficulty) : '-'}</dd>
+        </dl>
+        <div class="pcard-feeling">
+          <div class="pcard-feeling-label">かんそう</div>
+          ${escapeHtml(b.feeling || '')}
+        </div>
+      </div>
+    `;
+  }).join("");
+  return `
+    <div class="print-cards">
+      <h1>わたしの読書カード</h1>
+      <div class="cards-grid">${cards}</div>
+    </div>
+  `;
+}
+
+render();
+</script>
+</body>
+</html>
