@@ -246,6 +246,7 @@
     flex-shrink: 0;
     margin-top: 2px;
     background: white;
+    -webkit-tap-highlight-color: rgba(106, 142, 94, 0.3);
   }
   .checkbox.checked { background: var(--green); border-color: var(--green); }
   .checkbox.checked::after {
@@ -258,7 +259,15 @@
     line-height: 24px;
   }
 
-  .book-info { flex: 1; min-width: 0; cursor: pointer; }
+  .book-info {
+    flex: 1;
+    min-width: 0;
+    cursor: pointer;
+    -webkit-tap-highlight-color: rgba(200, 85, 61, 0.15);
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  .book-info:active { opacity: 0.7; }
   .book-title {
     font-family: 'Klee One', sans-serif;
     font-weight: 600;
@@ -994,8 +1003,23 @@ function render() {
       }).join("");
     list.querySelectorAll(".book").forEach(el => {
       const id = el.dataset.id;
-      el.querySelector(".checkbox").onclick = (e) => { e.stopPropagation(); toggleRead(id); };
-      el.querySelector(".book-info").onclick = () => openEditModal(id);
+      const cb = el.querySelector(".checkbox");
+      const info = el.querySelector(".book-info");
+
+      // チェックボックスのタップ
+      cb.addEventListener("click", (e) => {
+        e.stopPropagation();
+        toggleRead(id);
+      });
+
+      // 本情報のタップ → 編集モーダル(iOS Safariで確実に発火するよう設定)
+      info.style.cursor = "pointer";
+      info.setAttribute("role", "button");
+      info.addEventListener("click", (e) => {
+        // チェックボックス領域からのバブルは無視
+        if (e.target.closest(".checkbox")) return;
+        openEditModal(id);
+      });
     });
   }
 
