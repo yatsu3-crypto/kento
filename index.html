@@ -428,6 +428,122 @@
   .btn-secondary { background: transparent; color: var(--ink-soft); border: 1.5px solid var(--line); }
   .btn-danger { background: transparent; color: var(--accent); border: 1.5px solid var(--accent); }
 
+  /* ───── おすすめモーダル ───── */
+  .recommend-modal {
+    max-width: 440px;
+    background: linear-gradient(180deg, #fff6e0 0%, var(--paper) 60%);
+  }
+  .recommend-celebrate {
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  .recommend-emoji {
+    font-size: 44px;
+    line-height: 1;
+    margin-bottom: 6px;
+    animation: pop 0.5s ease-out;
+  }
+  @keyframes pop {
+    0% { transform: scale(0.3); opacity: 0; }
+    60% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(1); }
+  }
+  .recommend-modal h2 {
+    font-family: 'Yusei Magic', cursive;
+    color: var(--accent);
+    font-size: 22px;
+    margin: 0;
+  }
+  .recommend-sub {
+    font-family: 'Klee One', sans-serif;
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-top: 4px;
+  }
+  .rec-item {
+    background: white;
+    border: 1.5px solid var(--line);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: rgba(200, 85, 61, 0.15);
+    position: relative;
+  }
+  .rec-item:active { opacity: 0.75; }
+  .rec-item.highlight {
+    border-color: var(--accent);
+    border-width: 2px;
+    background: #fffbf0;
+  }
+  .rec-reason {
+    font-family: 'Klee One', sans-serif;
+    font-size: 11px;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 4px;
+    display: inline-block;
+    background: rgba(200, 85, 61, 0.08);
+    padding: 2px 8px;
+    border-radius: 8px;
+  }
+  .rec-title {
+    font-family: 'Klee One', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1.3;
+    margin-top: 4px;
+  }
+  .rec-author {
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-top: 2px;
+  }
+  .rec-meta {
+    margin-top: 6px;
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+  .rec-arrow {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--accent);
+    font-size: 20px;
+  }
+  .rec-wishlist-btn {
+    display: block;
+    width: 100%;
+    margin-top: 6px;
+    background: transparent;
+    border: 1.5px dashed var(--line);
+    color: var(--ink-soft);
+    padding: 8px;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .rec-wishlist-btn.added {
+    background: var(--yellow);
+    border-style: solid;
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  /* 気になるマーク */
+  .book-wishlist-badge {
+    position: absolute;
+    top: 8px;
+    right: 36px;
+    font-size: 18px;
+    color: var(--yellow);
+  }
+  .book.read .book-wishlist-badge { display: none; }
+
   .print-options {
     display: none;
     background: var(--paper);
@@ -745,6 +861,7 @@
   <button class="tab active" data-tab="all">ぜんぶ</button>
   <button class="tab" data-tab="read">よんだ</button>
   <button class="tab" data-tab="unread">まだ</button>
+  <button class="tab" data-tab="wishlist">⭐かりたい</button>
 </div>
 
 <div class="filters" id="filters"></div>
@@ -801,10 +918,31 @@
       <label>ひとこと感想</label>
       <textarea id="f-feeling" placeholder="どんなお話だった?おもしろかったところは?"></textarea>
     </div>
+    <div class="field">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+        <input type="checkbox" id="f-wishlist" style="width:20px;height:20px;cursor:pointer;">
+        <span>⭐ つぎに かりたい本に いれる</span>
+      </label>
+    </div>
     <div class="modal-actions">
       <button class="btn btn-secondary" onclick="closeModal()">とじる</button>
       <button class="btn btn-danger" id="del-btn" onclick="deleteBook()" style="display:none">けす</button>
       <button class="btn btn-primary" onclick="saveBook()">ほぞん</button>
+    </div>
+  </div>
+</div>
+
+<!-- おすすめモーダル(読了直後に表示) -->
+<div class="modal-bg" id="recommend-modal">
+  <div class="modal recommend-modal">
+    <div class="recommend-celebrate">
+      <div class="recommend-emoji">🎉</div>
+      <h2 id="recommend-title">1さつ 読み おわり!</h2>
+      <div class="recommend-sub" id="recommend-sub">つぎは どの本に する?</div>
+    </div>
+    <div id="recommend-list"></div>
+    <div class="modal-actions" style="margin-top: 16px;">
+      <button class="btn btn-secondary" onclick="closeRecommendModal()">あとで きめる</button>
     </div>
   </div>
 </div>
@@ -923,10 +1061,15 @@ const STORAGE_KEY = "dokusho_books_v3";
 
 function loadBooks() {
   const saved = localStorage.getItem(STORAGE_KEY);
-  if (saved) return JSON.parse(saved);
+  if (saved) {
+    const arr = JSON.parse(saved);
+    // 既存データにwishlistフィールドがなければ追加
+    arr.forEach(b => { if (b.wishlist === undefined) b.wishlist = false; });
+    return arr;
+  }
   const initial = PRESET_BOOKS.map((b, i) => ({
     id: "p" + i, title: b.t, author: b.a, level: b.lv,
-    read: false, date: "", stars: 0, difficulty: 0, feeling: ""
+    read: false, date: "", stars: 0, difficulty: 0, feeling: "", wishlist: false
   }));
   localStorage.setItem(STORAGE_KEY, JSON.stringify(initial));
   return initial;
@@ -976,6 +1119,7 @@ function render() {
   const filtered = books.filter(b => {
     if (currentTab === "read" && !b.read) return false;
     if (currentTab === "unread" && b.read) return false;
+    if (currentTab === "wishlist" && (!b.wishlist || b.read)) return false;
     if (currentBand !== "all" && levelBand(b.level) !== currentBand) return false;
     return true;
   });
@@ -1047,11 +1191,13 @@ function bookHTML(b) {
   return `
     <div class="book ${b.read?'read':''}" data-id="${b.id}">
       <div class="checkbox ${b.read?'checked':''}"></div>
+      ${b.wishlist && !b.read ? '<div class="book-wishlist-badge">⭐</div>' : ''}
       <div class="book-info">
         <div class="book-title">${escapeHtml(b.title)}</div>
         <div class="book-author">${escapeHtml(b.author||'')}</div>
         <div class="book-meta">
           <span class="book-level ${band}">YL ${b.level}</span>
+          ${b.wishlist && !b.read ? '<span class="book-level" style="background:var(--yellow)">⭐ かりたい</span>' : ''}
         </div>
         ${b.read ? `
           <div class="book-record">
@@ -1078,12 +1224,17 @@ function formatDate(d) {
 function toggleRead(id) {
   const b = books.find(x => x.id === id);
   if (!b) return;
+  const wasRead = b.read;
   b.read = !b.read;
   if (b.read && !b.date) {
     b.date = new Date().toISOString().slice(0,10);
   }
   saveBooks();
   render();
+  // 未読→読了になったときだけおすすめを出す
+  if (!wasRead && b.read) {
+    setTimeout(() => showRecommendations(b), 300);
+  }
 }
 
 function openAddModal() {
@@ -1094,6 +1245,7 @@ function openAddModal() {
   document.getElementById("f-level").value = "20";
   document.getElementById("f-date").value = "";
   document.getElementById("f-feeling").value = "";
+  document.getElementById("f-wishlist").checked = false;
   setStars(0); setDiffs(0);
   document.getElementById("del-btn").style.display = "none";
   document.getElementById("modal").classList.add("show");
@@ -1109,6 +1261,7 @@ function openEditModal(id) {
   document.getElementById("f-level").value = b.level;
   document.getElementById("f-date").value = b.date || "";
   document.getElementById("f-feeling").value = b.feeling || "";
+  document.getElementById("f-wishlist").checked = !!b.wishlist;
   setStars(b.stars); setDiffs(b.difficulty);
   document.getElementById("del-btn").style.display = id.startsWith("p") ? "none" : "block";
   document.getElementById("modal").classList.add("show");
@@ -1126,22 +1279,31 @@ function saveBook() {
     date: document.getElementById("f-date").value,
     stars: getStars(),
     difficulty: getDiffs(),
-    feeling: document.getElementById("f-feeling").value.trim()
+    feeling: document.getElementById("f-feeling").value.trim(),
+    wishlist: document.getElementById("f-wishlist").checked
   };
+  let justBecameRead = null;
   if (editingId) {
     const b = books.find(x => x.id === editingId);
+    const wasRead = b.read;
     Object.assign(b, data);
     if (data.date || data.stars > 0 || data.feeling) b.read = true;
+    if (!wasRead && b.read) justBecameRead = b;
   } else {
-    books.push({
+    const newBook = {
       id: "u" + Date.now(),
       ...data,
       read: !!(data.date || data.stars > 0 || data.feeling)
-    });
+    };
+    books.push(newBook);
+    if (newBook.read) justBecameRead = newBook;
   }
   saveBooks();
   closeModal();
   render();
+  if (justBecameRead) {
+    setTimeout(() => showRecommendations(justBecameRead), 300);
+  }
 }
 
 function deleteBook() {
@@ -1150,6 +1312,155 @@ function deleteBook() {
   saveBooks();
   closeModal();
   render();
+}
+
+// ═══ おすすめロジック ═══
+// シリーズ名の推定:タイトル先頭の共通部分を抜き出す
+function seriesKey(title) {
+  // 「シリーズ名 サブタイトル」のパターンを想定
+  // スペース・読点・コロン・数字で分割
+  const parts = title.split(/[\s、:]|[0-9]|[ー〜]/).filter(x => x.length > 0);
+  if (parts.length === 0) return title;
+  // 先頭2つの単語か、1つめだけ(短い場合)をキーとする
+  if (parts[0].length >= 4) return parts[0];
+  return parts.slice(0, 2).join("");
+}
+
+function showRecommendations(justReadBook) {
+  const recs = [];
+  const usedIds = new Set([justReadBook.id]);
+  const unreadBooks = books.filter(b => !b.read && !usedIds.has(b.id));
+
+  // 1. 同じシリーズの次の巻(タイトル先頭が共通するもの)
+  const sKey = seriesKey(justReadBook.title);
+  if (sKey && sKey.length >= 2) {
+    const seriesCandidates = unreadBooks
+      .filter(b => b.author === justReadBook.author && seriesKey(b.title) === sKey)
+      .sort((a, b) => a.level - b.level);
+    if (seriesCandidates.length > 0) {
+      recs.push({ book: seriesCandidates[0], reason: "📚 おなじシリーズの つぎ" });
+      usedIds.add(seriesCandidates[0].id);
+    }
+  }
+
+  // 2. 同じ作者の別の本
+  if (recs.length < 3) {
+    const sameAuthor = unreadBooks
+      .filter(b => !usedIds.has(b.id) && b.author === justReadBook.author && b.author)
+      .sort((a, b) => Math.abs(a.level - justReadBook.level) - Math.abs(b.level - justReadBook.level));
+    if (sameAuthor.length > 0) {
+      recs.push({ book: sameAuthor[0], reason: "✍️ おなじ作者の本" });
+      usedIds.add(sameAuthor[0].id);
+    }
+  }
+
+  // 3. 同じYL帯の別の本(近いレベル優先)
+  if (recs.length < 3) {
+    const sameBand = unreadBooks
+      .filter(b => !usedIds.has(b.id) && levelBand(b.level) === levelBand(justReadBook.level))
+      .sort((a, b) => Math.abs(a.level - justReadBook.level) - Math.abs(b.level - justReadBook.level));
+    if (sameBand.length > 0) {
+      recs.push({ book: sameBand[0], reason: "🌟 このレベルの おすすめ" });
+      usedIds.add(sameBand[0].id);
+    }
+  }
+
+  // 4. 少しむずかしめにチャレンジ(1段階上のYL帯から)
+  if (recs.length < 3) {
+    const currentBand = levelBand(justReadBook.level);
+    const bandOrder = ["easy", "mid", "std", "hard"];
+    const nextBandIdx = bandOrder.indexOf(currentBand) + 1;
+    if (nextBandIdx < bandOrder.length) {
+      const nextBand = bandOrder[nextBandIdx];
+      const challenge = unreadBooks
+        .filter(b => !usedIds.has(b.id) && levelBand(b.level) === nextBand)
+        .sort((a, b) => a.level - b.level);
+      if (challenge.length > 0) {
+        recs.push({ book: challenge[0], reason: "🚀 ちょっと チャレンジ!" });
+        usedIds.add(challenge[0].id);
+      }
+    }
+  }
+
+  // 5. まだ埋まらない場合は、近いレベルの本を適当に
+  if (recs.length < 3) {
+    const nearby = unreadBooks
+      .filter(b => !usedIds.has(b.id))
+      .sort((a, b) => Math.abs(a.level - justReadBook.level) - Math.abs(b.level - justReadBook.level));
+    while (recs.length < 3 && nearby.length > 0) {
+      const next = nearby.shift();
+      recs.push({ book: next, reason: "📖 こんな本も あるよ" });
+    }
+  }
+
+  if (recs.length === 0) return;
+
+  // 読了総冊数で祝いコメントを変える
+  const readCount = books.filter(b => b.read).length;
+  let title = "よみおわったね!";
+  let sub = "つぎは どの本に する?";
+  if (readCount === 1) {
+    title = "はじめての 1さつ!";
+    sub = "つぎも たのしみ! どれに する?";
+  } else if (readCount % 10 === 0) {
+    title = `${readCount}さつ よんだよ!🎊`;
+    sub = "すごい!つぎは この中から どう?";
+  } else if (readCount % 5 === 0) {
+    title = `${readCount}さつ とっぱ!`;
+    sub = "どんどん 読めてるね!つぎは?";
+  }
+  document.getElementById("recommend-title").textContent = title;
+  document.getElementById("recommend-sub").textContent = sub;
+
+  const list = document.getElementById("recommend-list");
+  list.innerHTML = recs.map((r, i) => {
+    const b = r.book;
+    const band = levelBand(b.level);
+    const inWish = b.wishlist;
+    return `
+      <div class="rec-item ${i===0?'highlight':''}" data-id="${b.id}">
+        <div class="rec-reason">${r.reason}</div>
+        <div class="rec-title">${escapeHtml(b.title)}</div>
+        <div class="rec-author">${escapeHtml(b.author||'')}</div>
+        <div class="rec-meta">
+          <span class="book-level ${band}">YL ${b.level}</span>
+        </div>
+        <button class="rec-wishlist-btn ${inWish?'added':''}" data-wish-id="${b.id}">
+          ${inWish ? '⭐ かりたい本に 入れたよ' : '⭐ つぎ 図書館で かりたい'}
+        </button>
+      </div>
+    `;
+  }).join("");
+
+  // 気になるボタンのイベント
+  list.querySelectorAll(".rec-wishlist-btn").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const id = btn.dataset.wishId;
+      const b = books.find(x => x.id === id);
+      if (!b) return;
+      b.wishlist = !b.wishlist;
+      saveBooks();
+      btn.classList.toggle("added", b.wishlist);
+      btn.textContent = b.wishlist ? "⭐ かりたい本に 入れたよ" : "⭐ つぎ 図書館で かりたい";
+      render();
+    });
+  });
+
+  // おすすめ本をタップしたら編集画面を開く
+  list.querySelectorAll(".rec-item").forEach(el => {
+    el.addEventListener("click", (e) => {
+      if (e.target.closest(".rec-wishlist-btn")) return;
+      closeRecommendModal();
+      setTimeout(() => openEditModal(el.dataset.id), 200);
+    });
+  });
+
+  document.getElementById("recommend-modal").classList.add("show");
+}
+
+function closeRecommendModal() {
+  document.getElementById("recommend-modal").classList.remove("show");
 }
 
 let starsVal = 0, diffsVal = 0;
@@ -1196,6 +1507,7 @@ function openPrintView() {
   const filtered = books.filter(b => {
     if (currentTab === "read" && !b.read) return false;
     if (currentTab === "unread" && b.read) return false;
+    if (currentTab === "wishlist" && (!b.wishlist || b.read)) return false;
     if (currentBand !== "all" && levelBand(b.level) !== currentBand) return false;
     return true;
   });
